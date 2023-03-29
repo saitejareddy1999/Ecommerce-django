@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'category',
     'accounts',
     'store',
+    'carts',
 
 ]
 
@@ -67,6 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',# if u call context_processors we can call menu_links anywhere all the templates
+                'carts.context_processors.counter',
             ],
         },
     },
@@ -126,7 +128,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR /'static'
 STATICFILES_DIRS = [
-    'ecommerceproject/static',
+    'Hospdevices/static',
 ]
 # media file configuration
 MEDIA_URL = '/media/'

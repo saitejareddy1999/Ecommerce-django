@@ -15,6 +15,6 @@ class Category(models.Model):
         verbose_name_plural = 'Categories'
     def get_url(self):
         return reverse('products_by_category',args = [self.slug])#it will take name of the category slug
-    def __str__(self):
+    def __str__(self):#to override the object name of the class
         return self.category_name
 
