@@ -68,7 +68,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'category.context_processors.menu_links',# if u call context_processors we can call menu_links anywhere all the templates
-                'carts.context_processors.counter',
             ],
         },
     },
@@ -128,8 +127,18 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR /'static'
 STATICFILES_DIRS = [
-    'Hospdevices/static',
+    'ecommerceproject/static',
 ]
 # media file configuration
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR /'media'
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
+# SMTP configuration
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'saitejareddy5132@gmail.com'
+EMAIL_HOST_PASSWORD = 'fhho heof wpdb rvbj'
+EMAIL_USE_TLS = True
