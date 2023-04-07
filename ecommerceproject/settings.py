@@ -140,5 +140,5 @@ MESSAGE_TAGS = {
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'saitejareddy5132@gmail.com'
-EMAIL_HOST_PASSWORD = 'fhho heof wpdb rvbj'
+EMAIL_HOST_PASSWORD = 'bjovzaaurbzupxpa'
 EMAIL_USE_TLS = True
