@@ -3,6 +3,9 @@ from .forms import RegistrationForm
 from accounts.models import Account
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
+from carts.models import Cart,CartItem
+from carts.views import _get_cart_id
+import requests
 
 #Activation email
 from django.contrib.sites.shortcuts import get_current_site
@@ -58,9 +61,65 @@ def login(request):
         password = request.POST['password']
         user =auth.authenticate(email = email,password = password)
         if user is not None:
+            try:
+                cart = Cart.objects.get(cart_id = _get_cart_id(request))#we are getting the cart id which we are pushing insidethe user
+                is_cart_item_exists = CartItem.objects.filter(cart = cart).exists()#product = product,#here we are not adding products because just we are making what are items inside cart just assigining it to user
+                if is_cart_item_exists:#we  are going to get all the cartitem inside what are there and we are assigning it to user
+                    cart_item = CartItem.objects.filter(cart = cart)# here we need to check if the user is not logged andd added products to cart,but after the user comes logged in there is same type of product in cart we are grouping that product and increaing the quantity
+                    #getting product variations from cartitem and getting what user wants variation we are grouping them
+                    product_variation = []#getting the product_variations by cart_id
+                    for item in cart_item:
+                        variation = item.variations.all() #we are getting variations from added into cartd
+                        product_variation.append(list(variation))
+
+                    #what user is adding the need to grp that vsriations only
+                    cart_item = CartItem.objects.filter(user = user)#we are just filterig based in product and cart to get cart_item is present in cart or not
+                    ex_var_list = []  #get the cartitems from user to  access his product variations
+                    id = [] 
+                    for item in cart_item:
+                        existing_variation = item.variations.all() #we are all the items which are there in cart so we have so many items cart we need to add it in list
+                        ex_var_list.append(list(existing_variation))
+                        id.append(item.id)
+
+                    # PRODUCT_Variation = [1,2,3,4,6]
+                    # ex_variation=[4,6,7,8]#we need to group those common elements from both lists
+                    for pr in product_variation:
+                        if pr in ex_var_list:
+                            index = ex_var_list.index(pr)
+                            item_id = id[index]
+                            item = CartItem.objects.get(id = item_id)
+                            item.quantity += 1
+                            item.user = user #those products assign to who are loggedin user
+                            item.save()
+                        else:
+                            cart_item = CartItem.objects.filter(cart = cart)
+                            for item in cart_item:
+                                item.user = user
+                                item.save()
+            except:
+                pass
             auth.login(request,user)
             messages.success(request,'you are logged in')
-            return redirect('dashboard')
+            #instead of going to dashboard we aare dynamically moving next page measn checkout which is getting in url path and we split that into two parts key and value if the lkey is present we are redireting to cart page but to handle this there are various approaches to do but here we are doing reuests module to dynamically move tom next page
+            url = request.META.get('HTTP_REFERER')# it will store what is the url in page
+            try:
+                print('inside try block')
+                query = requests.utils.urlParse(url).query
+                print('url',query)
+                return redirect('dashboard')
+            except:
+                pass
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query
+                # next=/cart/checkout/
+                print('url',query)
+                params = dict(x.split('=') for x in query.split('&'))
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)                
+            except:
+                return redirect('dashboard')
         else:
             messages.error(request,'invalid login credentials')
             return redirect('login')
