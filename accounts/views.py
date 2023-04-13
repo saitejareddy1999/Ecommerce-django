@@ -101,14 +101,14 @@ def login(request):
             auth.login(request,user)
             messages.success(request,'you are logged in')
             #instead of going to dashboard we aare dynamically moving next page measn checkout which is getting in url path and we split that into two parts key and value if the lkey is present we are redireting to cart page but to handle this there are various approaches to do but here we are doing reuests module to dynamically move tom next page
-            url = request.META.get('HTTP_REFERER')# it will store what is the url in page
-            try:
-                print('inside try block')
-                query = requests.utils.urlParse(url).query
-                print('url',query)
-                return redirect('dashboard')
-            except:
-                pass
+            # url = request.META.get('HTTP_REFERER')# it will store what is the url in page
+            # try:
+            #     print('inside try block')
+            #     query = requests.utils.urlParse(url).query
+            #     print('url',query)
+            #     return redirect('dashboard')
+            # except:
+            #     pass
             url = request.META.get('HTTP_REFERER')
             try:
                 query = requests.utils.urlparse(url).query
