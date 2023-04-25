@@ -55,7 +55,8 @@ class Account(AbstractBaseUser):
     REQUIRED_FIELDS = ['username','first_name','last_name']
 
     objects = MyAccountManager()#while creating account u need to say create user and superuser
-    
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
     def __str__(self): #when we call account object it just returns the email
         return self.email
     def has_perm(self, perm, obj = None):#if the user is admin he has all the perm to edit and update the changes
