@@ -1,6 +1,6 @@
-from django.shortcuts import render,redirect
-from .forms import RegistrationForm
-from accounts.models import Account
+from django.shortcuts import render,redirect,get_object_or_404
+from .forms import RegistrationForm,UserForm,UserProfileForm
+from accounts.models import Account,UserProfile
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
 from carts.models import Cart,CartItem
@@ -14,6 +14,8 @@ from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
+
+from orders.models import Order,OrderProduct
 # Create your views here.
 def register(request):
     if request.method == 'POST':
@@ -29,8 +31,13 @@ def register(request):
             print('first_name','last_name','phone_number','password')
             username     = email.split('@')[0]
             user         = Account.objects.create_user(first_name = first_name,last_name = last_name, email = email,password = password,username = username )#if u verify with create user we have created in accounts functionality if u add thos e feilds it will shw is_active button turned on
+            #create a user profile for any new user is coming we required add the userprofile for that because if we not add it just only show for admin profile we can change but here we required to change for every new user for that's the cease=on we required add it user profile to every user 
             user.phone_number = phone_number
             user.save()
+            profile = UserProfile()
+            profile.user_id = user.id
+            profile.profile_picture = 'default/default-user.png'
+            profile.save()
             #USER ACTIVATION
             current_site = get_current_site(request)#getting localhost site
             mail_subject = 'please activate your account'
@@ -146,7 +153,14 @@ def activate(request,uidb64,token):#upto this we have have encoded the uidb and 
         return redirect('register')
 @login_required(login_url = 'login')
 def dashboard(request):
-    return render(request,'accounts/dashboard.html')
+    orders = Order.objects.order_by('-created_at').filter(user_id = request.user.id,is_ordered =True)
+    orders_count = orders.count()
+    userprofile = UserProfile.objects.get(user_id = request.user.id)
+    context={
+        'orders_count' :orders_count,
+        'userprofile':userprofile
+    }
+    return render(request,'accounts/dashboard.html',context)
 
 def forgotpassword(request):
     if request.method == 'POST':
@@ -203,3 +217,66 @@ def resetpassword(request):
             return redirect('resetpassword')
     else:
         return render(request,'accounts/resetpassword.html')
+@login_required(login_url = 'login')
+def my_orders(request):
+    orders = Order.objects.filter(user = request.user,is_ordered = True).order_by('-created_at')
+    context = {
+        'orders':orders,
+    }
+    return render(request,'accounts/my_orders.html',context)
+@login_required(login_url = 'login')
+def edit_profile(request):
+    userprofile = get_object_or_404(UserProfile,user=request.user)#using here get_object_or_404 because if that user is present we are getting that ibkject or else not getting
+    if request.method == 'POST':
+        user_form = UserForm(request.POST,instance=request.user)#we are calling instance because we are going edit that respective profile only
+        profile_form = UserProfileForm(request.POST,request.FILES,instance = userprofile)#here we are not adding instance because we are not adding for particular user only we are calling that object if tat respective object/profile present we are taking that  
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request,'your profile has been updated')
+            return redirect('edit_profile')
+    else:
+        user_form = UserForm(instance=request.user)#if we write instance what are form data is there it ill reflect to that form only
+        profile_form = UserProfileForm(instance=userprofile)
+    context = {
+        'user_form':user_form,
+        'profile_form':profile_form,
+        'userprofile': userprofile,
+    }
+    return render(request,'accounts/edit_profile.html',context)
+@login_required(login_url = 'login')
+def change_password(request):#this is for dashboard page change password
+    if request.method == 'POST':
+        current_password = request.POST['current_password']
+        new_password = request.POST['new_password']
+        confirm_password = request.POST['confirm_new_password']
+        user = Account.objects.get(username__exact = request.user.username)
+
+        if new_password == confirm_password:
+            success = user.check_password(current_password)
+            if success:
+                user.set_password(new_password)
+                user.save()
+                messages.success(request,'password updated successfully')
+                return redirect('change_password')
+            else:
+                messages.error(request,'please enter current valid password')
+                return redirect('change_password')
+        else:
+            messages.error(request,'please enter new and confirm password same!!! pls try again to change password')
+            return redirect('change_password')
+    return render(request,'accounts/change_password.html')
+@login_required(login_url = 'login')
+def order_detail(request,order_id):
+    order_detail = OrderProduct.objects.filter(order__order_number=order_id)#here we can access a order number because in order product we have a order which is a foreignkey in oorder model we have a ordernumber that's the case we are required to add __ -->fields of order model
+    order = Order.objects.get(order_number=order_id)
+    subtotal = 0
+    for i in order_detail:
+        subtotal += i.product_price * i.quantity
+    context = {
+        'order_detail':order_detail,
+        'order':order,
+        'subtotal':subtotal
+
+    }
+    return render(request,'accounts/order_detail.html',context)
