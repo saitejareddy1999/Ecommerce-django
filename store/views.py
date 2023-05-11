@@ -1,12 +1,11 @@
 from django.shortcuts import render,get_object_or_404,redirect
-from .models import Product
+from .models import Product,ProductGallery,ReviewRating
 from category.models import Category
 from carts.models import CartItem
 from carts.views  import _get_cart_id
 from django.http import HttpResponse
 from django.core.paginator import EmptyPage,PageNotAnInteger,Paginator
-from django.db.models import Q
-from .models import ReviewRating
+from django.db.models import Q 
 from .forms import ReviewForm
 from django.contrib import messages
 from orders.models import OrderProduct
@@ -19,6 +18,7 @@ is go to product detail page to add to cart button or else it is already added a
 for review 
 if any user wants to review he want to login to system first and he want to purchase the particular product to review a product
 '''
+
 
 # Create your views here.
 # def store(request,category_slug = None):
@@ -86,12 +86,14 @@ def product_detail(request,category_slug = None,product_slug = None):
 
     # Get the reviews
     reviews = ReviewRating.objects.filter(product_id=single_product.id, status=True)
-
+    #get the product gallery
+    product_gallery = ProductGallery.objects.filter(product_id = single_product.id)
     context={
         'single_product' : single_product,
         'in_cart':in_cart,
         'orderproduct':orderproduct,
         'reviews':reviews,
+        'product_gallery' :product_gallery
     }
     return render(request,'store/product_detail.html',context)
 def search(request):#here it is treating as category we are required to add infornt of any slug name which is getting w eare required to add category

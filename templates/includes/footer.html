@@ -17,6 +17,17 @@
 				<i class="fab fa-lg fa-cc-mastercard"></i>
 			</div>
 		</section>
-	</div><!-- //container -->
+	</div>
 </footer>
 <!-- ========================= FOOTER END // ========================= -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script>
+	$(document).ready(function(){ <!-- //when the document is ready -->
+	$('.thumb a').click(function(e){
+		e.preventDefault();  //when we ckilk on the specific image it should not open specific image so that case we are writting nut inside we are doing for the neww image making it as a maininage  
+		$('.mainimage img').attr('src',$(this).attr('href'))
+	})
+	})
+</script>
+</body>
+</html>
